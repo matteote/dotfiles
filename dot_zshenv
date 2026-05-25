@@ -1,0 +1,7 @@
+# Bootstrap: redirect all subsequent zsh config to $ZDOTDIR. This file must
+# stay in $HOME because zsh reads it before learning about ZDOTDIR.
+export ZDOTDIR="${XDG_CONFIG_HOME:-$HOME/.config}/zsh"
+
+# zsh only reads .zshenv once (before it sees ZDOTDIR), so source the
+# in-repo .zshenv explicitly now that ZDOTDIR points at it.
+[ -r "$ZDOTDIR/.zshenv" ] && . "$ZDOTDIR/.zshenv"

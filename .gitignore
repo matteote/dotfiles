@@ -1,0 +1,11 @@
+# macOS metadata
+.DS_Store
+
+# Editor swap/backup files
+*.swp
+*.swo
+*~
+
+# Editor metadata for this repo
+.idea/
+.vscode/

@@ -1,0 +1,15 @@
+#!/bin/sh
+set -eu
+
+# Re-run when nvim's init or any plugin spec changes. Embedding source file
+# hashes as comments forces chezmoi's `onchange` detector to see a new script
+# body — and therefore re-trigger this script — whenever the underlying lua
+# files change in the source.
+#
+# init.lua: {{ include (joinPath .chezmoi.sourceDir "dot_config/nvim/init.lua") | sha256sum }}
+{{ range (glob (joinPath .chezmoi.sourceDir "dot_config/nvim/lua/plugins/*.lua")) -}}
+# {{ . }}: {{ include . | sha256sum }}
+{{ end }}
+command -v nvim >/dev/null 2>&1 || exit 0
+
+nvim --headless "+Lazy! sync" +qa

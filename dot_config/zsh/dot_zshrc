@@ -1,0 +1,98 @@
+# Interactive zsh config (loaded via ZDOTDIR set in ~/.zshenv).
+
+typeset -U path
+for dir in "$HOME/.local/bin" "$HOME/bin"; do
+    [[ -d "$dir" ]] && path=("$dir" $path)
+done
+
+# History: store under $ZDOTDIR to keep $HOME clean. Without HISTFILE set, zsh
+# keeps an in-memory history that vanishes on shell exit.
+HISTFILE=$ZDOTDIR/.zsh_history
+HISTSIZE=50000
+SAVEHIST=50000
+setopt HIST_IGNORE_DUPS       # skip consecutive duplicates
+setopt HIST_IGNORE_ALL_DUPS   # purge older duplicates when a new one is added
+setopt HIST_IGNORE_SPACE      # leading-space commands are ephemeral
+setopt HIST_REDUCE_BLANKS     # squeeze interior whitespace before saving
+setopt SHARE_HISTORY          # cross-session history sharing
+setopt EXTENDED_HISTORY       # save timestamp + duration per command
+setopt HIST_VERIFY            # `!!` expands but doesn't auto-execute
+
+# Vi-mode for command-line editing — already implicit from $EDITOR=nvim, but
+# made explicit here so it doesn't silently depend on that side effect.
+# KEYTIMEOUT=1 (centi-seconds) eliminates the 0.4s delay on Esc when
+# switching from insert to command mode. Keep Ctrl+A / Ctrl+E bound in
+# viins because nothing in vi mode covers them and the muscle memory
+# spans every other shell.
+bindkey -v
+export KEYTIMEOUT=1
+bindkey -M viins '^A' beginning-of-line
+bindkey -M viins '^E' end-of-line
+
+# Populate LS_COLORS so `ls --color=auto` and the completion-list colorisation
+# below both have a palette to work with. `dircolors` ships with GNU coreutils
+# (always present on Debian; via `brew install coreutils` on macOS — silently
+# skipped if missing).
+command -v dircolors >/dev/null && eval "$(dircolors -b)"
+
+# Completion: must run before plugins that hook into it (fzf-tab below).
+# `menu select` is the fallback UI when fzf-tab doesn't intercept (e.g. very
+# large candidate lists). `matcher-list` makes lowercase prefixes match
+# uppercase candidates. `list-colors` colorises the listing using LS_COLORS.
+autoload -Uz compinit && compinit
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+
+# fzf integration: Ctrl+T (file picker), Ctrl+R (history), Alt+J (cd).
+# Prefer the upstream `fzf --zsh` shipped by fzf 0.48+; fall back to the
+# legacy on-disk scripts on older fzf (Debian apt or older Homebrew).
+if command -v fzf >/dev/null 2>&1; then
+    if fzf --zsh >/dev/null 2>&1; then
+        eval "$(fzf --zsh)"
+    elif [[ -r /usr/share/doc/fzf/examples/key-bindings.zsh ]]; then
+        . /usr/share/doc/fzf/examples/key-bindings.zsh
+        [[ -r /usr/share/doc/fzf/examples/completion.zsh ]] && \
+            . /usr/share/doc/fzf/examples/completion.zsh
+    elif [[ -r "${HOMEBREW_PREFIX:-/opt/homebrew}/opt/fzf/shell/key-bindings.zsh" ]]; then
+        . "${HOMEBREW_PREFIX:-/opt/homebrew}/opt/fzf/shell/key-bindings.zsh"
+        [[ -r "${HOMEBREW_PREFIX:-/opt/homebrew}/opt/fzf/shell/completion.zsh" ]] && \
+            . "${HOMEBREW_PREFIX:-/opt/homebrew}/opt/fzf/shell/completion.zsh"
+    fi
+    # Move the cd-widget off Alt+c (used by the agent CLI binding) onto Alt+j.
+    bindkey -r '^[c' 2>/dev/null
+    bindkey '^[j' fzf-cd-widget 2>/dev/null
+fi
+
+# fzf-tab: replaces zsh's stock tab-completion menu with an fzf popup.
+# Must source after `compinit` so the completion system is initialised.
+if [[ -r "$ZDOTDIR/plugins/fzf-tab/fzf-tab.plugin.zsh" ]]; then
+    . "$ZDOTDIR/plugins/fzf-tab/fzf-tab.plugin.zsh"
+fi
+
+# zsh-autosuggestions: greys-out a fish-style inline suggestion as you type
+# based on shell history. Accept the whole suggestion with `→` (or `End`),
+# one word at a time with `Alt+F`. If syntax highlighting is ever added,
+# it MUST be sourced after this plugin.
+if [[ -r "$ZDOTDIR/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh" ]]; then
+    . "$ZDOTDIR/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh"
+fi
+
+# Starship prompt — keep its config alongside the rest of the zsh setup.
+export STARSHIP_CONFIG="$ZDOTDIR/starship.toml"
+eval "$(starship init zsh)"
+
+# `-G` colors on BSD ls (macOS) but suppresses the group column on GNU ls
+# (Linux), so split the flag by platform.
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    alias ll='ls -lahG'
+else
+    alias ll='ls -lah --color=auto'
+fi
+
+# `mc -b` runs Midnight Commander in monochrome (--nocolor); preferred over
+# the catppuccin skin defaults on terminals where the colored skin contrasts
+# poorly with the terminal palette.
+alias mc='mc -b'
+
+[ -r "$ZDOTDIR/.zshrc.local" ] && . "$ZDOTDIR/.zshrc.local"

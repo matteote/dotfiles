@@ -1,0 +1,10 @@
+# Environment zsh config (loaded via ZDOTDIR set in ~/.zshenv).
+
+export EDITOR=nvim
+export VISUAL=nvim
+
+# Default coding-agent CLI. Override per-machine in .zshenv.local by exporting
+# AGENT_CMD before this file is sourced, or change the value here.
+export AGENT_CMD="${AGENT_CMD:-claude}"
+
+[ -r "$ZDOTDIR/.zshenv.local" ] && . "$ZDOTDIR/.zshenv.local"

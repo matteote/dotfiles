@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+
+zsh_path=$(command -v zsh)
+
+# /etc/shells must list a shell before chsh will accept it.
+if ! grep -qx "$zsh_path" /etc/shells; then
+    echo "$zsh_path" | sudo tee -a /etc/shells >/dev/null
+fi
+
+{{ if eq .chezmoi.os "linux" -}}
+current_shell=$(getent passwd "$USER" | cut -d: -f7)
+{{ else if eq .chezmoi.os "darwin" -}}
+current_shell=$(dscl . -read /Users/"$USER" UserShell | awk '{print $2}')
+{{ end -}}
+
+if [ "$current_shell" != "$zsh_path" ]; then
+    chsh -s "$zsh_path"
+fi

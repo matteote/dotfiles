@@ -1,0 +1,14 @@
+#!/bin/sh
+set -eu
+
+# Re-run when tmux.conf.tmpl changes so newly declared TPM plugins get cloned
+# automatically. Embedding the source file hash as a comment forces chezmoi's
+# `onchange` detector to re-trigger this script whenever the template changes.
+#
+# tmux.conf.tmpl: {{ include (joinPath .chezmoi.sourceDir "dot_config/tmux/tmux.conf.tmpl") | sha256sum }}
+command -v tmux >/dev/null 2>&1 || exit 0
+
+TPM_INSTALL="${XDG_CONFIG_HOME:-$HOME/.config}/tmux/plugins/tpm/bin/install_plugins"
+[ -x "$TPM_INSTALL" ] || exit 0
+
+"$TPM_INSTALL"

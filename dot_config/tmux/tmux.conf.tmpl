@@ -1,0 +1,91 @@
+# Pin the default shell to zsh's absolute path (resolved at chezmoi-apply time).
+# tmux's `default-shell` otherwise defaults to whatever $SHELL the *first* tmux
+# invocation sees, which bakes in the wrong value if the server is started from
+# a non-zsh context.
+set -g default-shell "{{ lookPath "zsh" }}"
+
+set -g default-terminal "screen-256color"
+set-option -sa terminal-features ',xterm-256color:RGB'
+
+# Mouse: click-to-focus panes, drag borders to resize, scroll into copy mode.
+# Hold Shift to bypass tmux and use the terminal's native text selection.
+set -g mouse on
+
+# Number windows and panes from 1 (matches the keyboard layout) and renumber
+# windows after one is closed so there are no gaps in the index sequence.
+set -g base-index 1
+setw -g pane-base-index 1
+set -g renumber-windows on
+
+# Saner split keys that keep the current pane's working directory. The default
+# `prefix + "` (vertical) and `prefix + %` (horizontal) bindings are kept too.
+bind | split-window -h -c "#{pane_current_path}"
+bind - split-window -v -c "#{pane_current_path}"
+
+# Navigate panes with Alt+arrows (no prefix required). When the active pane is
+# running nvim, forward the key to it so vim-tmux-navigator can move between
+# nvim splits seamlessly; otherwise tmux moves between its own panes.
+is_vim="ps -o state= -o comm= -t '#{pane_tty}' \
+    | grep -iqE '^[^TXZ ]+ +(\\S+\\/)?g?(view|n?vim?x?)(diff)?$'"
+bind -n M-Left  if-shell "$is_vim" 'send-keys M-Left'  'select-pane -L'
+bind -n M-Down  if-shell "$is_vim" 'send-keys M-Down'  'select-pane -D'
+bind -n M-Up    if-shell "$is_vim" 'send-keys M-Up'    'select-pane -U'
+bind -n M-Right if-shell "$is_vim" 'send-keys M-Right' 'select-pane -R'
+
+# In tmux copy-mode (vi keys), Alt+arrows still move between panes directly.
+bind -T copy-mode-vi M-Left  select-pane -L
+bind -T copy-mode-vi M-Down  select-pane -D
+bind -T copy-mode-vi M-Up    select-pane -U
+bind -T copy-mode-vi M-Right select-pane -R
+
+# Alt+c (no prefix): open the coding-agent CLI in a right-side split, or —
+# when nvim is the active pane — forward the key to nvim so its
+# toggleterm.nvim binding toggles the side panel instead. $AGENT_CMD is set
+# by zsh's .zshenv (defaulting to `claude`); the `:-default` shell idiom
+# can't go here because tmux's own parser expands ${...} before sh sees it.
+bind -n M-c if-shell "$is_vim" 'send-keys M-c' 'split-window -h "$AGENT_CMD"'
+
+# Keep TPM and its plugins under XDG ($HOME/.config/tmux/plugins/) instead of
+# the legacy ~/.tmux/plugins/ location.
+set-environment -g TMUX_PLUGIN_MANAGER_PATH '~/.config/tmux/plugins/'
+
+set -g @plugin 'tmux-plugins/tpm'
+
+# Sensible defaults the upstream tmux package doesn't ship: escape-time 0
+# (kills the ESC delay that bites in nvim), focus-events on (lets nvim
+# auto-reload files on focus changes), bigger history-limit, and a few more.
+# Only sets options still at their tmux defaults, so anything we set above
+# wins.
+set -g @plugin 'tmux-plugins/tmux-sensible'
+
+# Catppuccin theme — matches the nvim catppuccin (mocha) statusline.
+set -g @plugin 'catppuccin/tmux#v2.1.3'
+set -g @catppuccin_flavor 'mocha'
+set -g @catppuccin_window_status_style 'rounded'
+
+# Status bar layout: app + session + date/time on the right.
+set -g status-left ''
+set -g status-right '#{E:@catppuccin_status_application}#{E:@catppuccin_status_session}#{E:@catppuccin_status_date_time}'
+set -g @catppuccin_date_time_text '%Y-%m-%d %H:%M'
+set -g status-right-length 100
+
+# Must stay near the bottom: TPM sources declared plugins on tmux start.
+run '~/.config/tmux/plugins/tpm/tpm'
+
+# Catppuccin palette variables are only defined after TPM sources the theme,
+# so any styling that references them must come below the `run` line above.
+# Active pane tint + pane borders pulled from the theme for visual consistency.
+set -gF window-style "bg=#{@thm_bg}"
+set -gF pane-border-style "fg=#{@thm_overlay_0},bg=#{@thm_bg}"
+set -gF pane-active-border-style "fg=#{@thm_lavender},bg=#{@thm_bg}"
+
+# Active-pane background tint is off by default — active panes inherit the
+# same catppuccin base as inactive ones. Toggle with `Alt+Shift+H` (no
+# prefix) when you want the active pane to stand out (uses catppuccin
+# surface_0). The explicit unset below resets the option on every config
+# reload, not just first load.
+set -g @active_pane_tint "off"
+set -gu window-active-style
+bind -n M-H if-shell '[ "#{@active_pane_tint}" = "off" ]' \
+    'set -g @active_pane_tint "on" ; set -gF window-active-style "bg=#{@thm_surface_0}"' \
+    'set -g @active_pane_tint "off" ; set -gu window-active-style'

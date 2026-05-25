@@ -1,0 +1,37 @@
+[git_branch]
+truncation_length = 4
+truncation_symbol = ''
+
+[directory]
+truncate_to_repo = false
+truncation_length = 2
+fish_style_pwd_dir_length = 3
+
+[cmd_duration]
+
+[time]
+disabled = false
+format = '[$time]($style) '
+
+[direnv]
+disabled = false
+
+[hostname]
+ssh_only = false
+format = '[$ssh_symbol$hostname]($style) '
+
+[os]
+disabled = false
+
+[os.symbols]
+Macos = " "
+
+[username]
+show_always = true
+format = '[$user]($style)@'
+
+[python]
+
+[nix_shell]
+symbol = '❄️ '
+format = '[$symbol$state( \($name\))]($style) '
