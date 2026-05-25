@@ -90,9 +90,4 @@ else
     alias ll='ls -lah --color=auto'
 fi
 
-# `mc -b` runs Midnight Commander in monochrome (--nocolor); preferred over
-# the catppuccin skin defaults on terminals where the colored skin contrasts
-# poorly with the terminal palette.
-alias mc='mc -b'
-
 [ -r "$ZDOTDIR/.zshrc.local" ] && . "$ZDOTDIR/.zshrc.local"
