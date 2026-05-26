@@ -1,30 +1,34 @@
 #!/bin/sh
 set -eu
 
+{{/* Shared across macOS and Linux — keep version-sensitive tools here so both
+     platforms get the same recent releases from Homebrew. */ -}}
+{{ $brewPackages := "starship tmux neovim direnv fzf midnight-commander" -}}
+
 {{ if eq .chezmoi.os "linux" -}}
+# Debian basics from apt: stable, system-integrated, version doesn't matter.
+# procps/curl/file are Homebrew's Linux prerequisites (build-essential and
+# git are already in the list, so brew's other requirements are covered).
 sudo apt-get update
 sudo apt-get install -y \
     git \
     zsh \
-    starship \
-    tmux \
-    neovim \
     build-essential \
-    direnv \
-    fzf \
-    mc
+    procps \
+    curl \
+    file
+
+if ! command -v brew >/dev/null 2>&1 && [ ! -x /home/linuxbrew/.linuxbrew/bin/brew ]; then
+    NONINTERACTIVE=1 /bin/bash -c \
+        "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+
+brew install {{ $brewPackages }}
 {{ else if eq .chezmoi.os "darwin" -}}
 if ! command -v brew >/dev/null 2>&1; then
     echo "Homebrew not found. Install from https://brew.sh first." >&2
     exit 1
 fi
-brew install \
-    git \
-    zsh \
-    starship \
-    tmux \
-    neovim \
-    direnv \
-    fzf \
-    midnight-commander
+brew install {{ $brewPackages }}
 {{ end -}}

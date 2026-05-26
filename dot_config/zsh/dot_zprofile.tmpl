@@ -2,6 +2,9 @@
 
 {{ if eq .chezmoi.os "darwin" -}}
 [[ -z "$HOMEBREW_PREFIX" ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
+{{ else if eq .chezmoi.os "linux" -}}
+[[ -z "$HOMEBREW_PREFIX" && -x /home/linuxbrew/.linuxbrew/bin/brew ]] && \
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 {{ end }}
 eval "$(direnv hook zsh)"
 
