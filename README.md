@@ -4,6 +4,10 @@ Personal environment configuration managed with [chezmoi](https://www.chezmoi.io
 
 ## Prerequisites
 
+### sudo
+
+The Debian package-install script uses `apt-get` and bootstraps Homebrew, both of which require `sudo`. Make sure the current user is in the `sudo` group (or equivalent) before running `chezmoi apply`. macOS users get `sudo` out of the box.
+
 ### chezmoi
 
 Install chezmoi:
