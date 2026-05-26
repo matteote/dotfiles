@@ -10,6 +10,14 @@ set -eu
 {{ range (glob (joinPath .chezmoi.sourceDir "dot_config/nvim/lua/plugins/*.lua")) -}}
 # {{ . }}: {{ include . | sha256sum }}
 {{ end }}
+# chezmoi runs scripts in a non-login, non-interactive shell, so $HOME's
+# shell rc files aren't sourced and Homebrew's bin dirs aren't on PATH.
+# Load brew's shellenv ourselves so nvim (brew-installed) is discoverable.
+{{ if eq .chezmoi.os "linux" -}}
+[ -x /home/linuxbrew/.linuxbrew/bin/brew ] && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+{{ else if eq .chezmoi.os "darwin" -}}
+[ -x /opt/homebrew/bin/brew ] && eval "$(/opt/homebrew/bin/brew shellenv)"
+{{ end }}
 command -v nvim >/dev/null 2>&1 || exit 0
 
 nvim --headless "+Lazy! sync" +qa

@@ -6,6 +6,15 @@ set -eu
 # `onchange` detector to re-trigger this script whenever the template changes.
 #
 # tmux.conf.tmpl: {{ include (joinPath .chezmoi.sourceDir "dot_config/tmux/tmux.conf.tmpl") | sha256sum }}
+
+# chezmoi runs scripts in a non-login, non-interactive shell, so $HOME's
+# shell rc files aren't sourced and Homebrew's bin dirs aren't on PATH.
+# Load brew's shellenv ourselves so tmux (brew-installed) is discoverable.
+{{ if eq .chezmoi.os "linux" -}}
+[ -x /home/linuxbrew/.linuxbrew/bin/brew ] && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+{{ else if eq .chezmoi.os "darwin" -}}
+[ -x /opt/homebrew/bin/brew ] && eval "$(/opt/homebrew/bin/brew shellenv)"
+{{ end }}
 command -v tmux >/dev/null 2>&1 || exit 0
 
 TPM_INSTALL="${XDG_CONFIG_HOME:-$HOME/.config}/tmux/plugins/tpm/bin/install_plugins"
