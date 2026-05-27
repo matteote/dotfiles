@@ -9,3 +9,6 @@
 # Editor metadata for this repo
 .idea/
 .vscode/
+
+# Local-only SSH keys for test VMs
+.ssh/
