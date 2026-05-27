@@ -15,5 +15,11 @@ current_shell=$(dscl . -read /Users/"$USER" UserShell | awk '{print $2}')
 {{ end -}}
 
 if [ "$current_shell" != "$zsh_path" ]; then
+{{ if eq .chezmoi.os "linux" -}}
+    # PAM-based chsh prompts for the user's password under sshd; use sudo
+    # to keep the apply non-interactive.
+    sudo chsh -s "$zsh_path" "$USER"
+{{ else -}}
     chsh -s "$zsh_path"
+{{ end -}}
 fi
