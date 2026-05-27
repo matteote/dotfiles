@@ -26,9 +26,18 @@ eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 
 brew install {{ $brewPackages }}
 {{ else if eq .chezmoi.os "darwin" -}}
-if ! command -v brew >/dev/null 2>&1; then
-    echo "Homebrew not found. Install from https://brew.sh first." >&2
-    exit 1
+# Apple Silicon: /opt/homebrew. Intel: /usr/local. Brew's installer
+# auto-picks the right prefix; NONINTERACTIVE=1 also makes it install
+# Xcode Command Line Tools via softwareupdate when missing.
+if ! command -v brew >/dev/null 2>&1 \
+    && [ ! -x /opt/homebrew/bin/brew ] \
+    && [ ! -x /usr/local/bin/brew ]; then
+    NONINTERACTIVE=1 /bin/bash -c \
+        "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
+for p in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+    [ -x "$p" ] && { eval "$("$p" shellenv)"; break; }
+done
+
 brew install {{ $brewPackages }}
 {{ end -}}
