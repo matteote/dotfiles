@@ -18,10 +18,16 @@ sh -c "$(curl -fsLS https://get.chezmoi.io)"
 
 ## Initial setup on a new machine
 
-Initialize chezmoi against this repo and apply the configuration:
+Install chezmoi and apply this repo in one command:
 
 ```shell
-chezmoi init --apply https://github.com/<your-user>/dotfiles.git
+sh -c "$(curl -fsLS https://get.chezmoi.io)" -- init --apply matteote/dotfiles
+```
+
+If chezmoi is already installed, just init and apply:
+
+```shell
+chezmoi init --apply https://github.com/matteote/dotfiles.git
 ```
 
 This clones the repo into chezmoi's source directory (`~/.local/share/chezmoi` on Linux, `~/Library/Application Support/chezmoi` on macOS) and renders the source files into `$HOME`.
@@ -83,14 +89,14 @@ chezmoi update           # equivalent to: cd + git pull + apply
 
 Source filenames encode the target file's path and attributes. The most common prefixes:
 
-| Source name             | Becomes              | Notes                                  |
-| ----------------------- | -------------------- | -------------------------------------- |
-| `dot_zshrc`             | `~/.zshrc`           | `dot_` → leading `.`                   |
-| `private_dot_ssh/`      | `~/.ssh/` (mode 700) | `private_` → mode `0600`/`0700`        |
-| `executable_dot_bin/foo`| `~/.bin/foo` (+x)    | `executable_` → mode `0755`            |
-| `run_once_install.sh`   | (script)             | Executed once on `apply`               |
-| `run_onchange_brew.sh`  | (script)             | Re-run when its contents change        |
-| `dot_zshrc.tmpl`        | `~/.zshrc`           | `.tmpl` → rendered as a Go template    |
+| Source name              | Becomes              | Notes                               |
+| ------------------------ | -------------------- | ----------------------------------- |
+| `dot_zshrc`              | `~/.zshrc`           | `dot_` → leading `.`                |
+| `private_dot_ssh/`       | `~/.ssh/` (mode 700) | `private_` → mode `0600`/`0700`     |
+| `executable_dot_bin/foo` | `~/.bin/foo` (+x)    | `executable_` → mode `0755`         |
+| `run_once_install.sh`    | (script)             | Executed once on `apply`            |
+| `run_onchange_brew.sh`   | (script)             | Re-run when its contents change     |
+| `dot_zshrc.tmpl`         | `~/.zshrc`           | `.tmpl` → rendered as a Go template |
 
 For OS-specific content, branch inside `.tmpl` files:
 
