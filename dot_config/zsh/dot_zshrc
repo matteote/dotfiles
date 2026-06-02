@@ -1,7 +1,7 @@
 # Interactive zsh config (loaded via ZDOTDIR set in ~/.zshenv).
 
 typeset -U path
-for dir in "$HOME/.local/bin" "$HOME/bin"; do
+for dir in "$HOME/.local/bin" "$HOME/bin" /nix/var/nix/profiles/default/bin; do
     [[ -d "$dir" ]] && path=("$dir" $path)
 done
 
