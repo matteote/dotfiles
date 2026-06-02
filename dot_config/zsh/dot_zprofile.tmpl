@@ -6,6 +6,5 @@
 [[ -z "$HOMEBREW_PREFIX" && -x /home/linuxbrew/.linuxbrew/bin/brew ]] && \
     eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
 {{ end }}
-eval "$(direnv hook zsh)"
 
 [ -r "$ZDOTDIR/.zprofile.local" ] && . "$ZDOTDIR/.zprofile.local"
