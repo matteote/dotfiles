@@ -85,6 +85,28 @@ Or in one shot:
 chezmoi update           # equivalent to: cd + git pull + apply
 ```
 
+## nix-direnv
+
+[direnv](https://direnv.net/) loads a per-directory environment from a project's `.envrc`. On its own, an `.envrc` that calls `use nix` re-evaluates `nix-shell` on every new shell (several seconds). [nix-direnv](https://github.com/nix-community/nix-direnv) replaces `use nix`/`use flake` with a caching version that stores the evaluated environment under the project's `.direnv/` and pins a GC root, so later shells load it in well under a second.
+
+This repo wires it up for you:
+
+- The package-install script runs `nix profile install nixpkgs#nix-direnv`, but only on machines that have nix — nix itself is not managed here.
+- `dot_config/direnv/direnvrc` (→ `~/.config/direnv/direnvrc`) sources nix-direnv globally, guarded so it's a harmless no-op where nix-direnv isn't installed.
+
+To use it in a project, drop an `.envrc` in the project root and allow it:
+
+```shell
+echo 'use nix' > .envrc     # or: use flake
+direnv allow
+```
+
+The first load builds and caches the environment; subsequent shells reuse the cache. nix-direnv writes that cache to `.direnv/` in the project, so add it to the project's `.gitignore`:
+
+```shell
+echo '.direnv/' >> .gitignore
+```
+
 ## Naming conventions (cheat sheet)
 
 Source filenames encode the target file's path and attributes. The most common prefixes:
