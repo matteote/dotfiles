@@ -41,3 +41,11 @@ done
 
 brew install {{ $brewPackages }}
 {{ end -}}
+
+# nix-direnv: caches `use nix` evaluation (see ~/.config/direnv/direnvrc).
+# Installed into the user's nix profile from nixpkgs — only where nix exists
+# (nix itself is not managed by this repo). Idempotent: skip if already present.
+if command -v nix >/dev/null 2>&1; then
+    nix profile list 2>/dev/null | grep -q nix-direnv \
+        || nix profile install nixpkgs#nix-direnv
+fi

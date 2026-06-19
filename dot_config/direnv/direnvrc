@@ -1,0 +1,7 @@
+# nix-direnv: replaces `use nix`/`use flake` with a caching version that stores
+# the evaluated env under .direnv/ and pins GC roots, so later shells load the
+# cache instead of re-running nix-shell (~6s cold). Installed in the nix profile
+# (see install-packages script); guarded so it's a no-op where nix-direnv isn't present.
+nix_direnv="$HOME/.nix-profile/share/nix-direnv/direnvrc"
+[ -r "$nix_direnv" ] && source "$nix_direnv"
+unset nix_direnv
